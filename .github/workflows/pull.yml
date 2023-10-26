@@ -1,0 +1,437 @@
+name: Pull request Workflow
+
+on:
+  pull_request:
+    branches: [ main, branch-name ]
+
+jobs:
+  build-and-package:
+    name: Install and package
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Check for cache key and restore cache if available
+      - name: Restore Cache
+        id: restore-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+      
+      # If cache was restored, save the cache key for subsequent runs
+      - name: Save Cache
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        # Note: Cache will be saved only if the previous step restored the cache
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Run Typescript compiler
+        run: npx tsc
+
+      - name: Copy the JS files to root
+        run:  cp ${GITHUB_WORKSPACE}/dest/*.js .
+
+      - name: Package JS files
+        run: npm run build-aws-lambda
+
+      - name: Upload artifacts for usage in next job
+        uses: actions/upload-artifact@v3
+        with:
+          name: service-name
+          path: service-name.zip
+
+      - name: Copy package to IAC folder
+        run: cp *.zip ./iac-scripts
+
+  unit-test:
+    name: Unit testing
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      # Check for cache key and restore cache if available
+      - name: Restore Cache
+        id: restore-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci  
+
+      # If cache was restored, save the cache key for subsequent runs
+      - name: Save Cache
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        # Note: Cache will be saved only if the previous step restored the cache
+
+      - name: Run unit tests 
+        run: npm run test:unit
+    
+  code-audit:
+    name: Linting
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      # Check for cache key and restore cache if available
+      - name: Restore Cache
+        id: restore-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      # If cache was restored, save the cache key for subsequent runs
+      - name: Save Cache
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        # Note: Cache will be saved only if the previous step restored the cache 
+
+      - name: Run linting
+        run: npm run lint
+
+  integration-test:
+    name: Integration testing
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      # Check for cache key and restore cache if available
+      - name: Restore Cache
+        id: restore-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      # If cache was restored, save the cache key for subsequent runs
+      - name: Save Cache
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        # Note: Cache will be saved only if the previous step restored the cache 
+
+      - name: Run integration tests 
+        run: npm run test:integration
+
+  audit-packages:
+    name: Audit packages
+    runs-on: ubuntu-latest
+    needs: [integration-test, code-audit, unit-test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Audit packages
+        run: npm audit --json --audit-level=moderate >> npm_audit_results.json
+      - run: mkdir staging && cp npm_audit_results.json staging
+
+      - name: Upload json file for job
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-audit-results
+          path: npm_audit_results.json
+            
+  checkov:
+    name: Audit IAC 
+    runs-on: ubuntu-latest
+    needs: [integration-test, code-audit, unit-test]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      # Check for cache key and restore cache if available
+      - name: Restore Cache
+        id: restore-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install checkov
+        run: pip install checkov 
+
+      # If cache was restored, save the cache key for subsequent runs
+      - name: Save Cache
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        # Note: Cache will be saved only if the previous step restored the cache 
+
+      - name: Run checkov
+        run: checkov -d . --output junitxml | tee checkov-results.xml
+
+      - name: Upload checkov results
+        uses: actions/upload-artifact@v3
+        with:
+          name: checkov results
+          path: checkov-results.xml
+
+  dev-deployment:
+    name: Dev deployment
+    # Permission can be added at job level or workflow level    
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    needs: [audit-packages, checkov]
+    runs-on: ubuntu-latest
+    environment: DEV
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_CREDENTIALS }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: eu-west-1
+
+      - name: Download a single artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: branch-name
+      - run: cp *.zip iac-scripts
+
+      - name: Create tfstate bucket
+        run: |
+          if aws s3 ls "s3://dev-ba-olci-services-state" 2>&1 | grep -q 'NoSuchBucket';  then
+              aws s3api create-bucket --bucket dev-ba-olci-services-state --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1
+              aws s3api put-bucket-versioning --bucket dev-ba-olci-services-state --versioning-configuration Status=Enabled
+              aws s3api put-bucket-encryption --bucket dev-ba-olci-services-state --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
+              echo "S3 Bucket does not exist.And it is created"
+          else
+              echo "S3 Bucket already exist."
+          fi
+
+      - name: Create dynamodb lock table
+        run: |
+           if aws dynamodb describe-table --table-name dev-olci-terraform-state-lock 2>/dev/null; then
+            echo "DynamoDB Table: found"
+           else 
+            aws dynamodb create-table --table-name dev-olci-terraform-state-lock --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=20,WriteCapacityUnits=20 --billing-mode PROVISIONED
+            echo "DynamoDB Table not found, Creating DynamoDB table ..."
+           fi
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config=dev.conf -input=false -upgrade=true
+        working-directory: ./iac-scripts
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./iac-scripts
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+        working-directory: ./iac-scripts
+
+      - name: Terraform Plan
+        id: plan  
+        run: terraform plan -out "planfile" -var-file="DEV.tfvars"
+        working-directory: ./iac-scripts
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -input=false "planfile"
+        working-directory: ./iac-scripts
+
+  tst-deployment:
+    name: TST Deployment
+    # Permission can be added at job level or workflow level    
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    needs: dev-deployment
+    runs-on: ubuntu-latest
+    environment: TST
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_CREDENTIALS }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: eu-west-1
+        
+      - name: Download a single artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: service-name
+      - run: cp *.zip iac-scripts
+
+      - name: Create tfstate bucket
+        run: |
+          if aws s3 ls "s3://tst-ba-olci-services-state" 2>&1 | grep -q 'NoSuchBucket';  then
+              aws s3api create-bucket --bucket tst-ba-olci-services-state --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1
+              aws s3api put-bucket-versioning --bucket tst-ba-olci-services-state --versioning-configuration Status=Enabled
+              aws s3api put-bucket-encryption --bucket tst-ba-olci-services-state --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
+              echo "S3 Bucket does not exist.And it is created"
+          else
+              echo "S3 Bucket already exist."
+          fi
+
+      - name: Create dynamodb lock table
+        run: |
+           if aws dynamodb describe-table --table-name tst-olci-terraform-state-lock 2>/dev/null; then
+            echo "DynamoDB Table: found"
+           else 
+            aws dynamodb create-table --table-name tst-olci-terraform-state-lock-lock --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=20,WriteCapacityUnits=20 --billing-mode PROVISIONED
+            echo "DynamoDB Table not found, Creating DynamoDB table ..."
+           fi   
+      
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config=tst.conf -input=false -upgrade=true
+        working-directory: ./iac-scripts
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./iac-scripts
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+        working-directory: ./iac-scripts
+        
+      - name: Terraform Plan
+        id: plan  
+        run: terraform plan -out "planfile" -var-file="TST.tfvars"
+        working-directory: ./iac-scripts
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -input=false "planfile"
+        working-directory: ./iac-scripts
+      - run : terraform output function_url      
+
+  automation-testing:
+    name: Automation testing
+    needs: tst-deployment
+    runs-on: ubuntu-latest
+    steps:
+    - name: Initiating the automation testcase
+      uses: codex-/return-dispatch@v1
+      id: return_dispatch
+      with:
+        token: ${{ secrets.REPO_CONNECT_PAT }}
+        repo: olci-automation
+        owner: BritishAirways-Ent
+        ref: main
+        workflow: olci_test_execution.yml
+        workflow_inputs: '{ "Testcycle": "test-cycle-id" }'
+          
+    - name: Checking the status of automation test cases
+      id: workflow_status
+      run: |
+        final_status="inprogress"
+        while [[ "$final_status" == "inprogress" ]]; do
+          response=$(curl -s -H "Authorization: Bearer ${{ secrets.REPO_CONNECT_PAT }}" \
+                      "https://api.github.com/repos/BritishAirways-Ent/olci-automation/actions/runs/${{ steps.return_dispatch.outputs.run_id }}")
+          
+          # Extract the status of each job
+          job_statuses=$(echo "$response" | jq -r '.conclusion')
+          #job_statuses=$(echo "$response" | grep -o '"conclusion": *"[^"]*"' | sed 's/"conclusion": *"\([^"]*\)"/\1/')
+          
+          # Check if any job has a "failure" status
+          echo "$job_statuses"
+          
+          for status in $job_statuses; do
+            if [[ "$status" == "failure" ]]; then
+              final_status="failure"
+              break;
+            elif [[ "$status" == "success" ]]; then
+              final_status="success"
+              break;
+            fi
+          done
+          
+          echo "Workflow Run Status: $final_status"
+          sleep 10
+          if [[ "$final_status" != "inprogress" ]]; then
+            echo "final_status1=$final_status" >> $GITHUB_OUTPUT
+            break
+          fi
+        done
+    - name: print the value
+      run: |
+        echo "${{ steps.workflow_status.outputs.final_status1 }}"
+    - name: Sending mail if test case is failed
+      if: ${{ steps.workflow_status.outputs.final_status1 == 'failure' }}
+      uses: trstringer/manual-approval@v1
+      with:
+        secret: ${{ github.TOKEN }}
+        approvers: midhunchalakkal, ChrisChinery
+        minimum-approvals: 1
+        issue-title: "Automation got failed"
+        issue-body: "Please approve (or deny) the manual and automation tests for service"
+        exclude-workflow-initiator-as-approver: false 
+
+  uat:
+    name: UAT Signoff
+    needs: automation-testing
+    runs-on: ubuntu-latest
+    steps:
+    - uses: trstringer/manual-approval@v1
+      timeout-minutes: 360
+    
+      with:
+        secret: ${{ github.TOKEN }}
+        approvers: ChrisChinery
+        minimum-approvals: 1
+        issue-title: "UAT Signoff for the OLCI service-name microservice"
+        issue-body: "Please approve (or deny) the manual and automation tests for service-name"
+        exclude-workflow-initiator-as-approver: false

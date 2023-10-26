@@ -1,0 +1,23 @@
+
+# Coverage directory
+coverage
+coverage.*
+
+# build folder
+dest
+build
+
+# Dependency directory
+node_modules
+
+# Optional npm cache directory
+.npm
+
+build/*.js
+test/*.js
+
+# Log Files
+/*.log
+
+#zip
+*.zip

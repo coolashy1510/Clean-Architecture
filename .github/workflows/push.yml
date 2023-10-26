@@ -1,0 +1,107 @@
+name: Push Workflow
+
+on:
+  push:
+    branches: [ BCDFO-<Jira-No>-Service-Name ]
+
+jobs:
+  build:
+    name: Install dependencies
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Check for cache key and restore cache if available
+      - name: Restore Cache
+        id: restore-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      # If cache was restored, save the cache key for subsequent runs
+      - name: Save Cache
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        # Note: Cache will be saved only if the previous step restored the cache
+
+      - name: Build
+        run: npm run build --if-present
+
+  unit-test:
+    name: Unit testing
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      # Check for cache key and restore cache if available
+      - name: Restore Cache
+        id: restore-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      # If cache was restored, save the cache key for subsequent runs
+      - name: Save Cache
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        # Note: Cache will be saved only if the previous step restored the cache
+
+      - name: Run unit tests 
+        run: npm run test:unit
+
+  code-audit:
+    name: Linting
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+
+      # Check for cache key and restore cache if available
+      - name: Restore Cache
+        id: restore-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      # If cache was restored, save the cache key for subsequent runs
+      - name: Save Cache
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        # Note: Cache will be saved only if the previous step restored the cache
+
+      - name: Run linting
+        run: npm run lint
