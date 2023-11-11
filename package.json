@@ -47,7 +47,7 @@
     "@aws-sdk/lib-dynamodb": "^3.354.0",
     "@types/lambda-tester": "^3.6.2",
     "aws-lambda-response-builder": "^1.0.15",
-    "axios": "^1.4.0",
+    "axios": "^1.6.0",
     "http-status-codes": "^2.2.0",
     "husky": "^8.0.3",
     "lambda-tester": "^4.0.1",
