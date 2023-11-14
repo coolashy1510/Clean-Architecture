@@ -1,11 +1,12 @@
-class configGateway implements iConfigGateway {
-    // The config type could either be DAPI/CC and the corresponding connection details would be retrieved from the param store
-    getConnectionConfig(configType:string):any {
-        // SDK code for calling the param store based on the input config type and returning the connection details to the journey Gateway
-    }
+import { iConfigGateway } from '../../use-cases/interfaces/iConfigGateway';
 
-    // The config type could either be DAPI/CC and the corresponding Kinesis Data Stream details would be retrieved from the param store
-    getKinesisConfig(configType:string):any {
-        // SDK code for calling the param store based on the input config type and returning the Kinesis stream details to the Data Propagate gateway
-    }
+/**
+ * ConfigGateway class implements iConfigGateway interface.
+ * Retrieves configuration details from AWS services viz,. the parameter store.
+ */
+export class ConfigGateway implements iConfigGateway {
+  // The config type could either be DAPI/CC and the corresponding connection details would be retrieved from the param store
+  getConfigurations(): any {
+    // SDK code for calling the param store based on the input config type and returning the connection details to the journey Gateway
+  }
 }
