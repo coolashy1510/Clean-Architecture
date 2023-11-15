@@ -1,9 +1,22 @@
 import { Aggregate } from '../../domain/entities/aggregate';
 import { iRepositoryGateway } from '../../use-cases/interfaces/iRepositoryGateway';
 
+/**
+ * RepositoryGateway Class
+ * Implements the iRepositoryGateway interface to persist Aggregates to the Business Service Database.
+ *
+ * @class
+ * @implements {iRepositoryGateway}
+ * @author
+ */
 export class RepositoryGateway implements iRepositoryGateway {
-  // The journeys Aggregate is passed into this method to be persisted to the Business service DB for the other Acceptance microservices to use.
+  /**
+   * Persists the provided aggregate to the Business Service Database.
+   *
+   * @param {Aggregate} aggregate - The aggregate to be persisted.
+   */
   persistAggregate(aggregate: Aggregate) {
-    // SDK code to call DynamoDB and persist the journeys aggregate
+    // Implementation details for persisting the aggregate to the Business Service Database
+    // Include any SDK code or logic necessary for storing the aggregate data
   }
 }

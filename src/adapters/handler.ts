@@ -5,15 +5,20 @@ import { ErrorHandler } from '../frameworks/errors/errorHandler';
 import { ErrorData } from '../frameworks/errors/errorModel';
 
 /**
- ** Entry point of service
- ** Service Description Goes here
+ ** Entry point of the service
  *
- * @author Kritika Tiwary (n433354) & Ashwin Kumar (n499160)
+ * @description
+ ** This Lambda function serves as the entry point for your service.
+ ** It invokes the `ServiceUseCase` to handle the provided event, and then it creates an API Gateway response using the output from the use case through the presenter or security adapter. Error handling is done through the `ErrorHandler`.
  *
- * @param { Anyevent } event - Any Input event
- * @param { Context } context - AWS lambda context
+ * @author
+ * Kritika Tiwary (n433354) & Ashwin Kumar (n499160)
+ *
+ * @param {AnyEvent} event - Any input event for the Lambda function.
+ * @param {Context} context - AWS Lambda context.
+ * @returns {Promise<any>} - A promise that resolves to the API Gateway response.
  */
-// ! Always add a type and AVOID USING ANY
+// ! Always add a type and AVOID USING ANY - remove this line when committing
 export const handleEvent = async (event: any, context: any): Promise<any> => {
   // Sets the defaultMeta in logger object with awsRequestId, so as to add it in the logger configuration
   if (context.awsRequestId) {

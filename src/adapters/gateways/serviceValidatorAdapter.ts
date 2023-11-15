@@ -3,13 +3,19 @@ import { StatusCodes } from 'http-status-codes';
 import { TechnicalError } from '../../frameworks/errors/technicalError';
 
 /**
- ** Validates the Input event
+ * ServiceValidatorAdapter Class
+ * Validates the input event for the service.
  *
- * @author Ashwin Kumar (n499160)
- *
- * @param { event } - the input event
+ * @class
+ * @author
  */
 export class ServiceValidatorAdapter {
+  /**
+   * Validates the input event.
+   *
+   * @param {any} event - The input event to be validated.
+   * @throws {TechnicalError} - Throws a TechnicalError if the event is not provided.
+   */
   validate(event: any): void {
     // Validates event
     if (!event) {

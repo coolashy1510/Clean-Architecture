@@ -1,12 +1,21 @@
 import { iConfigGateway } from '../../use-cases/interfaces/iConfigGateway';
 
 /**
- * ConfigGateway class implements iConfigGateway interface.
- * Retrieves configuration details from AWS services viz,. the parameter store.
+ * ConfigGateway Class
+ * Implements the iConfigGateway interface for retrieving configuration details.
+ *
+ * @class
+ * @implements {iConfigGateway}
+ * @author
  */
 export class ConfigGateway implements iConfigGateway {
-  // The config type could either be DAPI/CC and the corresponding connection details would be retrieved from the param store
+  /**
+   * Retrieves configuration details from AWS services, specifically the parameter store.
+   *
+   * @returns {any} - The connection details based on the configuration type.
+   */
   getConfigurations(): any {
-    // SDK code for calling the param store based on the input config type and returning the connection details to the journey Gateway
+    // SDK code for calling the parameter store based on the input config type
+    // and returning the connection details to the journey Gateway
   }
 }

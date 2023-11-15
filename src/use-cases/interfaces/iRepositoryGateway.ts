@@ -1,6 +1,18 @@
 import { Aggregate } from '../../domain/entities/aggregate';
 
+/**
+ * Repository Gateway Interface
+ *
+ * @description
+ * This interface defines the contract for persisting the aggregate to the Business service database,
+ * making it available for other microservices to use.
+ */
 export interface iRepositoryGateway {
-  // The journeys Aggregate is passed into this method to be persisted to the Business service DB for the other Acceptance microservices to use.
+  /**
+   * Persist Aggregate
+   *
+   * @param {Aggregate} aggregate - The aggregate to be persisted.
+   * @returns {any} - The method should handle the persistence process and return the result accordingly.
+   */
   persistAggregate(aggregate: Aggregate): any;
 }
