@@ -1,11 +1,12 @@
-# OLCi-Node-Typescript-Boilerplate
+# OLCi Clean Architecture 
 
-Boilerplate for OlCi Node.js application written in TypeScript
+Typescript + Clean Architecture Boilerplate for OlCi application
 
 ## Purpose
 
-`Our main purpose with this boilerplate is to have OLCi base application with node js and typescript ready.
-This is a template repository and it needs to be added whenever a new repo will be created for service work.`
+`Our main purpose with this boilerplate is to have OLCi base application with node js and typescript ready.`
+
+The projects try to follow the rules of [Uncle Bob's Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html).
 
 ## Common Features
 
@@ -20,25 +21,35 @@ This is a template repository and it needs to be added whenever a new repo will 
 
 ## Project Structure
 
-| Name                              | Description |
-| --------------------------------- | ----------- |
-| **.github/**                      | Github workflow files will be placed here |
-| **.github/workflows/**            | Workflow files for push and pull requests |
-| **.husky/**                       | Pre-commit hooks for project |
-| **dest/**                         | Compiled source files will be placed here |
-| **iac-scripts/**                  | Infrastructure files |
-| **src/**                          | Source files |
-| **src/builder**                   | Request and Response builder files |
-| **src/errors**                    | Error Handling Framework |
-| **src/model**                     | Request and Response types |
-| **src/proxy**                     | Proxy files |
-| **src/service**                   | Service files |
-| **src/util**                      | Common Utility files |
-| **src/validator**                 | Validator files |
-| **handler.ts/**                   | Microservice entry point |
-| **tests/**                        | Test cases will be placed here |
-| **tests/integration-tests/**      | API E2E Integration Test cases will be placed here|
-| **tests/performance-tests/**      | API Performance Test cases will be placed here|
-| **tests/unit-tests/**             | Unit Test cases will be placed here  |
-| **handler.test.ts/**              | Handler test class |
-| **wiki/**                         | Project documentation and insructions file here |
+| Name                                  | Description |
+| ---------------------------------     | ----------- |
+| **.github/**                          | Github workflow files will be placed here |
+| **.github/workflows/**                | Workflow files for push and pull requests |
+| **.husky/**                           | Pre-commit hooks for project |
+| **dest/**                             | Compiled source files will be placed here |
+| **iac-scripts/**                      | Infrastructure files |
+| **src/**                              | Source files |
+| **src/adapters/**                     | Concrete adapters |
+| **src/adapters/controllers**          | Concrete controllers - handles input request |
+| **src/adapters/gateways**             | Concrete gateways - handles calls to external services |
+| **src/adapters/presenters**           | Concrete presenters - Presents the response fo the service |
+| **src/adapters/handler.ts**           | Microservice entry point |
+| **src/domain/**                       | Domain Layer |
+| **src/domain/entities**               | All models |
+| **src/frameworks/**                   | Common Framework|
+| **src/frameworks/errors**             | Error Handling Framework |
+| **src/frameworks/util**               | Common Utility files |
+| **src/use-cases/**                    | Concrete use cases |
+| **src/use-cases/interfaces**          | Interfaces for everything the use cases need |
+| **src/use-cases/serviceUseCase.ts**   | Service use cases  |
+| **tests/**                            | Test cases will be placed here |
+| **tests/integration-tests/**          | API E2E Integration Test cases will be placed here|
+| **tests/performance-tests/**          | API Performance Test cases will be placed here|
+| **tests/unit-tests/**                 | Unit Test cases will be placed here  |
+| **handler.test.ts/**                  | Handler test class |
+| **wiki/**                             | Project documentation and insructions file here |
+
+## Clean Architecture visual guide
+
+[![Clean Architecture - By Uncle Bob](https://raw.githubusercontent.com/luizomf/clean-architecture-api-boilerplate/master/docs/clean-architecture.png)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+

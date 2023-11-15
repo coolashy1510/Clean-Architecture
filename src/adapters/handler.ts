@@ -5,9 +5,8 @@ import { ErrorHandler } from '../frameworks/errors/errorHandler';
 import { ErrorData } from '../frameworks/errors/errorModel';
 
 /**
- ** Entry point of Create Booking service
- ** This service is used to load the journeys data from AWS kinesis event to the DynamoDB
- ** which will be used across booking business services.
+ ** Entry point of service
+ ** Service Description Goes here
  *
  * @author Kritika Tiwary (n433354) & Ashwin Kumar (n499160)
  *
