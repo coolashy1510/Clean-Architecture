@@ -49,7 +49,14 @@ The projects try to follow the rules of [Uncle Bob's Clean Architecture](https:/
 | **handler.test.ts/**                  | Handler test class |
 | **wiki/**                             | Project documentation and insructions file here |
 
-## Clean Architecture visual guide
+## Reference
 
-[![Clean Architecture - By Uncle Bob](https://raw.githubusercontent.com/luizomf/clean-architecture-api-boilerplate/master/docs/clean-architecture.png)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+[Clean Architecture - By Uncle Bob]
 
+## License
+
+© 2023 [British Airways]\
+All rights reserved.
+
+[British Airways]: https://www.ba.com
+[Clean Architecture - By Uncle Bob]: https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
