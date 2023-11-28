@@ -48,7 +48,7 @@ jobs:
         run: npx tsc
 
       - name: Copy the JS files to root
-        run:  cp ${GITHUB_WORKSPACE}/dest/*.js .
+        run:  cp ${GITHUB_WORKSPACE}/dest/adapters/*.js .
 
       - name: Package JS files
         run: npm run build-aws-lambda
