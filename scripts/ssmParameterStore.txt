@@ -1,5 +1,0 @@
-#DEV
-aws ssm put-parameter --name "/olci/dev/serviceName/url" --description "This parameter is used to store parameter values for service_name service in DEV environment" --value "{\"baseUrl\": \"https://test.online-checkin.britishairways.airlines.api.amadeus.com/v2/\",\"contextPath\": \"\"}" --type String
-
-#TST
-aws ssm put-parameter --name "/olci/tst/serviceName/url" --description "This parameter is used to store parameter values for service_name service in TST environment" --value "{\"baseUrl\": \"https://test.online-checkin.britishairways.airlines.api.amadeus.com/v2/\",\"contextPath\": \"\"}" --type String

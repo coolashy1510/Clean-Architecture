@@ -13,17 +13,17 @@ jobs:
         node-version: [18.x]
     steps:
       - name: checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
       # Check for cache key and restore cache if available
       - name: Restore Cache
         id: restore-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -35,7 +35,7 @@ jobs:
       - name: Save Cache
         if: steps.restore-cache.outputs.cache-hit == 'true'
         id: save-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -48,13 +48,17 @@ jobs:
         run: npx tsc
 
       - name: Copy the JS files to root
+<<<<<<< Updated upstream
         run:  cp ${GITHUB_WORKSPACE}/dest/adapters/*.js .
+=======
+        run: cp ${GITHUB_WORKSPACE}/dest/adapters/*.js .
+>>>>>>> Stashed changes
 
       - name: Package JS files
         run: npm run build-aws-lambda
 
       - name: Upload artifacts for usage in next job
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: service-name
           path: service-name.zip
@@ -68,12 +72,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Check for cache key and restore cache if available
       - name: Restore Cache
         id: restore-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -85,7 +89,7 @@ jobs:
       - name: Save Cache
         if: steps.restore-cache.outputs.cache-hit == 'true'
         id: save-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -100,12 +104,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Check for cache key and restore cache if available
       - name: Restore Cache
         id: restore-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -117,7 +121,7 @@ jobs:
       - name: Save Cache
         if: steps.restore-cache.outputs.cache-hit == 'true'
         id: save-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -132,12 +136,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Check for cache key and restore cache if available
       - name: Restore Cache
         id: restore-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -149,7 +153,7 @@ jobs:
       - name: Save Cache
         if: steps.restore-cache.outputs.cache-hit == 'true'
         id: save-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -164,14 +168,14 @@ jobs:
     needs: [integration-test, code-audit, unit-test]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Audit packages
         run: npm audit --json --audit-level=moderate >> npm_audit_results.json
       - run: mkdir staging && cp npm_audit_results.json staging
 
       - name: Upload json file for job
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: npm-audit-results
           path: npm_audit_results.json
@@ -182,12 +186,12 @@ jobs:
     needs: [integration-test, code-audit, unit-test]
     steps:
       - name: checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Check for cache key and restore cache if available
       - name: Restore Cache
         id: restore-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -199,7 +203,7 @@ jobs:
       - name: Save Cache
         if: steps.restore-cache.outputs.cache-hit == 'true'
         id: save-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: Linux-node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -209,7 +213,7 @@ jobs:
         run: checkov -d . --output junitxml | tee checkov-results.xml
 
       - name: Upload checkov results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: checkov results
           path: checkov-results.xml
@@ -222,47 +226,30 @@ jobs:
       contents: read    # This is required for actions/checkout
     needs: [audit-packages, checkov]
     runs-on: ubuntu-latest
-    environment: DEV
+    environment: ECP-DEV
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_CREDENTIALS }}
+          role-to-assume: ${{ secrets.AWS_GITHUB_ECP_OIDC_CREDENTIALS }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: eu-west-1
 
       - name: Download a single artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: branch-name
+          name: service-name
       - run: cp *.zip iac-scripts
 
-      - name: Create tfstate bucket
-        run: |
-          if aws s3 ls "s3://dev-ba-olci-services-state" 2>&1 | grep -q 'NoSuchBucket';  then
-              aws s3api create-bucket --bucket dev-ba-olci-services-state --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1
-              aws s3api put-bucket-versioning --bucket dev-ba-olci-services-state --versioning-configuration Status=Enabled
-              aws s3api put-bucket-encryption --bucket dev-ba-olci-services-state --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
-              echo "S3 Bucket does not exist.And it is created"
-          else
-              echo "S3 Bucket already exist."
-          fi
-
-      - name: Create dynamodb lock table
-        run: |
-           if aws dynamodb describe-table --table-name dev-olci-terraform-state-lock 2>/dev/null; then
-            echo "DynamoDB Table: found"
-           else 
-            aws dynamodb create-table --table-name dev-olci-terraform-state-lock --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=20,WriteCapacityUnits=20 --billing-mode PROVISIONED
-            echo "DynamoDB Table not found, Creating DynamoDB table ..."
-           fi
+      - name: Prepare Terraform Environment Config Files
+        run: ./scripts/tf-prepare-environment.sh ECP-DEV
 
       - name: Terraform Init
         id: init
-        run: terraform init -backend-config=dev.conf -input=false -upgrade=true
+        run: terraform init -backend-config=backend.conf -input=false -upgrade=true
         working-directory: ./iac-scripts
 
       - name: Terraform Validate
@@ -277,7 +264,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan  
-        run: terraform plan -out "planfile" -var-file="DEV.tfvars"
+        run: terraform plan -out "planfile" -var-file="config.tfvars"
         working-directory: ./iac-scripts
 
       - name: Terraform Apply
@@ -293,48 +280,31 @@ jobs:
       contents: read    # This is required for actions/checkout
     needs: dev-deployment
     runs-on: ubuntu-latest
-    environment: TST
+    environment: ECP-TST
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_CREDENTIALS }}
+          role-to-assume: ${{ secrets.AWS_GITHUB_ECP_OIDC_CREDENTIALS }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: eu-west-1
         
       - name: Download a single artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: service-name
       - run: cp *.zip iac-scripts
 
-      - name: Create tfstate bucket
-        run: |
-          if aws s3 ls "s3://tst-ba-olci-services-state" 2>&1 | grep -q 'NoSuchBucket';  then
-              aws s3api create-bucket --bucket tst-ba-olci-services-state --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1
-              aws s3api put-bucket-versioning --bucket tst-ba-olci-services-state --versioning-configuration Status=Enabled
-              aws s3api put-bucket-encryption --bucket tst-ba-olci-services-state --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
-              echo "S3 Bucket does not exist.And it is created"
-          else
-              echo "S3 Bucket already exist."
-          fi
-
-      - name: Create dynamodb lock table
-        run: |
-           if aws dynamodb describe-table --table-name tst-olci-terraform-state-lock 2>/dev/null; then
-            echo "DynamoDB Table: found"
-           else 
-            aws dynamodb create-table --table-name tst-olci-terraform-state-lock-lock --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=20,WriteCapacityUnits=20 --billing-mode PROVISIONED
-            echo "DynamoDB Table not found, Creating DynamoDB table ..."
-           fi   
+      - name: Prepare Terraform Environment Config Files
+        run: ./scripts/tf-prepare-environment.sh ECP-TST
       
       - name: Terraform Init
         id: init
-        run: terraform init -backend-config=tst.conf -input=false -upgrade=true
+        run: terraform init -backend-config=backend.conf -input=false -upgrade=true
         working-directory: ./iac-scripts
 
       - name: Terraform Validate
@@ -349,7 +319,7 @@ jobs:
         
       - name: Terraform Plan
         id: plan  
-        run: terraform plan -out "planfile" -var-file="TST.tfvars"
+        run: terraform plan -out "planfile" -var-file="config.tfvars"
         working-directory: ./iac-scripts
 
       - name: Terraform Apply
