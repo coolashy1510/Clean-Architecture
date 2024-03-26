@@ -48,11 +48,7 @@ jobs:
         run: npx tsc
 
       - name: Copy the JS files to root
-<<<<<<< Updated upstream
-        run:  cp ${GITHUB_WORKSPACE}/dest/adapters/*.js .
-=======
         run: cp ${GITHUB_WORKSPACE}/dest/adapters/*.js .
->>>>>>> Stashed changes
 
       - name: Package JS files
         run: npm run build-aws-lambda
